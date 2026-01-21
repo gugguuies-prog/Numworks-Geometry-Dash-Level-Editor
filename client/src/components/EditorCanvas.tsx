@@ -10,7 +10,7 @@ interface EditorCanvasProps {
   zoom?: number;
 }
 
-const TILE_W = 10;
+const TILE_W = 32;
 const TILE_H = 32;
 const VIEWPORT_H = 222; // Numworks screen height
 
