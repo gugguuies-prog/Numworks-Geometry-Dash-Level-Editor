@@ -1,0 +1,329 @@
+import { useState, useEffect } from "react";
+import { useLevels, useUpdateLevels, useExportScript } from "@/hooks/use-levels";
+import { EditorCanvas } from "@/components/EditorCanvas";
+import { ColorInput } from "@/components/ColorPicker";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Save, Download, Plus, Trash2, 
+  MousePointer2, Square, Triangle, Eraser, 
+  Settings, Layers, Monitor
+} from "lucide-react";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import clsx from "clsx";
+import type { Level } from "@shared/schema";
+
+type ToolType = "cursor" | "block" | "spike" | "eraser";
+
+export default function Editor() {
+  const { data: gameData, isLoading } = useLevels();
+  const updateMutation = useUpdateLevels();
+  const exportScript = useExportScript();
+  
+  const [selectedLevelId, setSelectedLevelId] = useState<number>(0);
+  const [localGameData, setLocalGameData] = useState(gameData);
+  const [activeTool, setActiveTool] = useState<ToolType>("cursor");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Sync local state when data loads
+  useEffect(() => {
+    if (gameData && !localGameData) {
+      setLocalGameData(gameData);
+    }
+  }, [gameData]);
+
+  // Handle level updates locally first
+  const handleLevelChange = (updatedLevel: Level) => {
+    if (!localGameData) return;
+    const newLevels = localGameData.levels.map(l => 
+      l.id === updatedLevel.id ? updatedLevel : l
+    );
+    setLocalGameData({ ...localGameData, levels: newLevels });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSave = () => {
+    if (!localGameData) return;
+    updateMutation.mutate(localGameData, {
+      onSuccess: () => setHasUnsavedChanges(false)
+    });
+  };
+
+  const handleAddLevel = () => {
+    if (!localGameData) return;
+    const newId = Math.max(0, ...localGameData.levels.map(l => l.id)) + 1;
+    const newLevel: Level = {
+      id: newId,
+      blocks: [],
+      spikes: [],
+      endX: 100,
+      bgColor: [30, 30, 30],
+      groundColor: [100, 100, 255]
+    };
+    setLocalGameData({
+      ...localGameData,
+      levels: [...localGameData.levels, newLevel]
+    });
+    setSelectedLevelId(newId);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleDeleteLevel = () => {
+    if (!localGameData || localGameData.levels.length <= 1) return;
+    const newLevels = localGameData.levels.filter(l => l.id !== selectedLevelId);
+    setLocalGameData({ ...localGameData, levels: newLevels });
+    setSelectedLevelId(newLevels[0].id);
+    setHasUnsavedChanges(true);
+  };
+
+  const currentLevel = localGameData?.levels.find(l => l.id === selectedLevelId);
+
+  if (isLoading || !localGameData || !currentLevel) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background text-foreground">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="font-mono animate-pulse">Initializing Editor Protocol...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden font-display">
+      {/* HEADER */}
+      <header className="h-16 border-b border-border bg-card/50 backdrop-blur flex items-center px-6 justify-between z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+            <Monitor className="text-white w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold leading-none tracking-tight">Numworks GD Editor</h1>
+            <p className="text-xs text-muted-foreground font-mono mt-1">v1.0.0 • {localGameData.levels.length} Levels Loaded</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button 
+            variant={hasUnsavedChanges ? "default" : "secondary"}
+            onClick={handleSave}
+            disabled={updateMutation.isPending}
+            className={clsx(
+              "font-mono text-xs gap-2 transition-all duration-300",
+              hasUnsavedChanges && "shadow-[0_0_20px_rgba(124,58,237,0.3)] animate-pulse"
+            )}
+          >
+            <Save className="w-4 h-4" />
+            {updateMutation.isPending ? "SAVING..." : hasUnsavedChanges ? "SAVE CHANGES*" : "SAVED"}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={exportScript}
+            className="font-mono text-xs gap-2 border-primary/20 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+          >
+            <Download className="w-4 h-4" />
+            EXPORT .PY
+          </Button>
+        </div>
+      </header>
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* LEFT SIDEBAR - Level Selector */}
+        <aside className="w-64 bg-card border-r border-border flex flex-col">
+          <div className="p-4 border-b border-border">
+            <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Levels</h2>
+            <Button onClick={handleAddLevel} className="w-full gap-2" variant="secondary">
+              <Plus className="w-4 h-4" /> New Level
+            </Button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            {localGameData.levels.map((level) => (
+              <button
+                key={level.id}
+                onClick={() => setSelectedLevelId(level.id)}
+                className={clsx(
+                  "w-full text-left px-4 py-3 rounded-md text-sm font-medium transition-all group relative",
+                  selectedLevelId === level.id 
+                    ? "bg-primary/10 text-primary border border-primary/20" 
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <span className="font-mono">Level {level.id + 1}</span>
+                <span className="text-xs ml-2 opacity-50 block">
+                  {level.blocks.length} blocks • {level.spikes.length} spikes
+                </span>
+                
+                {selectedLevelId === level.id && localGameData.levels.length > 1 && (
+                  <div 
+                    onClick={(e) => { e.stopPropagation(); handleDeleteLevel(); }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-destructive/20 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        {/* MAIN CANVAS */}
+        <main className="flex-1 bg-black/50 relative flex flex-col overflow-hidden">
+          {/* Toolbar overlay */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-card border border-border rounded-full shadow-2xl p-1.5 flex gap-1 z-20">
+            <ToolButton 
+              active={activeTool === "cursor"} 
+              onClick={() => setActiveTool("cursor")} 
+              icon={MousePointer2} 
+              tooltip="Select (V)" 
+            />
+            <div className="w-px bg-border mx-1 h-6 self-center" />
+            <ToolButton 
+              active={activeTool === "block"} 
+              onClick={() => setActiveTool("block")} 
+              icon={Square} 
+              tooltip="Block Tool (B)" 
+            />
+            <ToolButton 
+              active={activeTool === "spike"} 
+              onClick={() => setActiveTool("spike")} 
+              icon={Triangle} 
+              tooltip="Spike Tool (S)" 
+            />
+            <div className="w-px bg-border mx-1 h-6 self-center" />
+            <ToolButton 
+              active={activeTool === "eraser"} 
+              onClick={() => setActiveTool("eraser")} 
+              icon={Eraser} 
+              tooltip="Eraser (E)" 
+            />
+          </div>
+
+          <div className="flex-1 overflow-auto p-8 flex items-center justify-start min-h-0 bg-neutral-950/50 backdrop-blur-sm">
+            <EditorCanvas 
+              level={currentLevel} 
+              onChange={handleLevelChange} 
+              tool={activeTool}
+              zoom={2} // Default zoom 2x for visibility
+            />
+          </div>
+          
+          <div className="h-8 bg-card border-t border-border flex items-center px-4 text-xs font-mono text-muted-foreground justify-between">
+             <span>Coordinates: X:{currentLevel.endX} tiles</span>
+             <span>Press 'Shift' to scroll horizontally</span>
+          </div>
+        </main>
+
+        {/* RIGHT SIDEBAR - Properties */}
+        <aside className="w-72 bg-card border-l border-border flex flex-col">
+          <div className="p-4 border-b border-border">
+            <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <Settings className="w-4 h-4" /> Properties
+            </h2>
+          </div>
+          
+          <div className="p-6 space-y-8">
+            {/* Level Settings */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Level Length</h3>
+                <span className="text-xs text-muted-foreground font-mono">{currentLevel.endX} tiles</span>
+              </div>
+              <Input 
+                type="number" 
+                value={currentLevel.endX}
+                onChange={(e) => handleLevelChange({ ...currentLevel, endX: parseInt(e.target.value) || 100 })}
+                className="font-mono"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Defines the X coordinate where the level ends.
+              </p>
+            </div>
+
+            <Separator />
+
+            {/* Appearance */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2">
+                <Layers className="w-4 h-4" /> Appearance
+              </h3>
+              
+              <ColorInput 
+                label="Background Color"
+                color={currentLevel.bgColor}
+                onChange={(c) => handleLevelChange({ ...currentLevel, bgColor: c })}
+              />
+              
+              <ColorInput 
+                label="Ground/Block Color"
+                color={currentLevel.groundColor}
+                onChange={(c) => handleLevelChange({ ...currentLevel, groundColor: c })}
+              />
+            </div>
+
+            <Separator />
+
+            {/* Stats */}
+            <div className="rounded-lg bg-background/50 p-4 space-y-2 border border-border/50">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Total Blocks</span>
+                <span className="font-mono">{currentLevel.blocks.length}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Total Spikes</span>
+                <span className="font-mono">{currentLevel.spikes.length}</span>
+              </div>
+            </div>
+
+            <div className="mt-auto pt-8">
+              <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
+                Use <b>Left Click</b> to place/select.<br/>
+                <b>Drag</b> to create large blocks.<br/>
+                <b>Click</b> existing spike to flip.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function ToolButton({ 
+  active, 
+  onClick, 
+  icon: Icon, 
+  tooltip 
+}: { 
+  active: boolean; 
+  onClick: () => void; 
+  icon: any; 
+  tooltip: string 
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={onClick}
+          className={clsx(
+            "p-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95",
+            active 
+              ? "bg-primary text-primary-foreground shadow-md" 
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          <Icon className="w-5 h-5" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="font-mono text-xs">
+        <p>{tooltip}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
