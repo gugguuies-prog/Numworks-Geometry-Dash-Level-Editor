@@ -131,7 +131,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
             className="absolute border border-black/20"
             style={{
               left: `${block.x * TILE_W * zoom}px`,
-              top: `${(block.y * TILE_H * zoom) + (TILE_H * zoom / 2)}px`,
+              top: `${block.y * TILE_H * zoom}px`,
               width: `${block.w * TILE_W * zoom}px`,
               height: `${(block.h * TILE_H * zoom) / 2}px`,
               backgroundColor: rgbString(level.groundColor),
