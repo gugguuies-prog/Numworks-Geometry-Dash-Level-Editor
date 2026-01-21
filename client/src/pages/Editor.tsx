@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Save, Download, Plus, Trash2, 
+  Save, Download, Plus, Trash2, Upload,
   MousePointer2, Square, Triangle, Eraser, 
-  Settings, Layers, Monitor
+  Settings, Layers, Monitor, Play
 } from "lucide-react";
 import { 
   Tooltip, 
@@ -83,6 +83,41 @@ export default function Editor() {
     setHasUnsavedChanges(true);
   };
 
+  const handleExport = () => {
+    exportScript();
+  };
+
+  const handleImport = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".py";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const content = e.target?.result as string;
+        try {
+          const res = await fetch("/api/import", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setLocalGameData(data);
+            setHasUnsavedChanges(false);
+            window.location.reload(); // Refresh to ensure all states are clean
+          }
+        } catch (err) {
+          console.error("Import failed", err);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   const currentLevel = localGameData?.levels.find(l => l.id === selectedLevelId);
 
   if (isLoading || !localGameData || !currentLevel) {
@@ -111,6 +146,14 @@ export default function Editor() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button 
+            variant="outline"
+            onClick={handleImport}
+            className="font-mono text-xs gap-2 border-primary/20 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+          >
+            <Upload className="w-4 h-4" />
+            IMPORT .PY
+          </Button>
           <Button 
             variant={hasUnsavedChanges ? "default" : "secondary"}
             onClick={handleSave}
@@ -202,6 +245,13 @@ export default function Editor() {
               onClick={() => setActiveTool("eraser")} 
               icon={Eraser} 
               tooltip="Eraser (E)" 
+            />
+            <div className="w-px bg-border mx-1 h-6 self-center" />
+            <ToolButton 
+              active={false} 
+              onClick={() => window.open('/play', '_blank')} 
+              icon={Play} 
+              tooltip="Play Level (P)" 
             />
           </div>
 
