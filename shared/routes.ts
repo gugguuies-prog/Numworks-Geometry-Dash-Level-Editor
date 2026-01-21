@@ -38,6 +38,14 @@ export const api = {
       responses: {
         200: z.string(), // Returns the python file content
       },
+    },
+    import: {
+      method: 'POST' as const,
+      path: '/api/import',
+      responses: {
+        200: gameDataSchema,
+        400: errorSchemas.validation,
+      },
     }
   },
 };

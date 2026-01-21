@@ -46,5 +46,18 @@ export async function registerRoutes(
     }
   });
 
+  app.post(api.levels.import.path, async (req, res) => {
+    try {
+      const content = req.body.content;
+      if (!content) {
+        return res.status(400).json({ message: "No content provided" });
+      }
+      const data = await storage.importPythonData(content);
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ message: "Failed to import script" });
+    }
+  });
+
   return httpServer;
 }

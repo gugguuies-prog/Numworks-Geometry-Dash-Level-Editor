@@ -152,8 +152,8 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
                 height: 0,
                 borderLeft: `${(TILE_W * zoom) / 2}px solid transparent`,
                 borderRight: `${(TILE_W * zoom) / 2}px solid transparent`,
-                borderBottom: spike.orientation === 0 ? `${TILE_H * zoom}px solid black` : 'none',
-                borderTop: spike.orientation === 1 ? `${TILE_H * zoom}px solid black` : 'none',
+                borderBottom: spike.orientation === 0 ? `${TILE_H * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
+                borderTop: spike.orientation === 1 ? `${TILE_H * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
               }}
             />
           </div>

@@ -6,6 +6,7 @@ export interface IStorage {
   getGameData(): Promise<GameData>;
   updateGameData(data: GameData): Promise<GameData>;
   getScriptContent(): Promise<string>;
+  importPythonData(content: string): Promise<GameData>;
 }
 
 // Helper to parse the Python file
@@ -159,6 +160,14 @@ export class FileStorage implements IStorage {
 
   async getScriptContent(): Promise<string> {
     return await fs.readFile(this.filePath, "utf-8");
+  }
+
+  async importPythonData(content: string): Promise<GameData> {
+    const data = parsePythonData(content);
+    await fs.writeFile(this.filePath, content, "utf-8");
+    this.cachedContent = content;
+    this.cachedData = data;
+    return data;
   }
 }
 
