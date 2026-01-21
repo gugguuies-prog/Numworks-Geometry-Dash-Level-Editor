@@ -133,7 +133,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
               left: `${block.x * TILE_W * zoom}px`,
               top: `${block.y * TILE_H * zoom}px`,
               width: `${block.w * TILE_W * zoom}px`,
-              height: `${(block.h * TILE_H * zoom) / 2}px`,
+              height: `${block.h * TILE_H * zoom}px`,
               backgroundColor: rgbString(level.groundColor),
             }}
           />
