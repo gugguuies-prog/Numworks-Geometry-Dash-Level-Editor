@@ -32,18 +32,23 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
     return { x: Math.max(0, x), y: Math.max(0, Math.min(6, y)) }; // Clamp Y to ~7 rows (222px / 32px)
   };
 
+  const getSpikeAt = (x: number, y: number) => {
+    return level.spikes.find(s => s.x === x && s.y === y);
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     const coords = getTileCoords(e);
     setIsDragging(true);
     setDragStart(coords);
 
     if (tool === "spike") {
-      // Toggle spike or add new one
-      const existingSpikeIndex = level.spikes.findIndex(s => s.x === coords.x && s.y === coords.y);
-      if (existingSpikeIndex >= 0) {
-        // Toggle orientation if clicking existing spike
-        const newSpikes = [...level.spikes];
-        newSpikes[existingSpikeIndex].orientation = newSpikes[existingSpikeIndex].orientation === 0 ? 1 : 0;
+      const existingSpike = getSpikeAt(coords.x, coords.y);
+      if (existingSpike) {
+        const newSpikes = level.spikes.map(s => 
+          (s.x === coords.x && s.y === coords.y) 
+            ? { ...s, orientation: s.orientation === 0 ? 1 : 0 } 
+            : s
+        );
         onChange({ ...level, spikes: newSpikes });
       } else {
         onChange({

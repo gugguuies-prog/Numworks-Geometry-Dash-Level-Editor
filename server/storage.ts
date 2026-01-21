@@ -58,9 +58,9 @@ function parsePythonData(content: string): GameData {
       .replace(/\(/g, '[')   // Replace tuple parens with brackets
       .replace(/\)/g, ']')
       .replace(/'/g, '"')    // Replace single quotes if any (though none in sample)
-      .replace(/\s+/g, '')   // Remove whitespace
       .replace(/,\]/g, ']')  // Remove trailing commas inside lists
-      .replace(/,\]/g, ']'); // Repeat for nested
+      .replace(/,\]/g, ']')  // Repeat for nested
+      .replace(/,(\s*[\]\}])/g, '$1'); // Robust trailing comma removal
 
     // Fix trailing comma at the end of the main list if present
     if (cleanString.endsWith(',]')) cleanString = cleanString.slice(0, -2) + ']';
