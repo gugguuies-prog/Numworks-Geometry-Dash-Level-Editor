@@ -170,6 +170,19 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
           style={{ left: `${level.endX * TILE_W * zoom}px` }}
         />
 
+        {/* Player Spawn Point */}
+        <div 
+          className="absolute border-2 border-orange-500 bg-orange-500/20 rounded-sm pointer-events-none flex items-center justify-center shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+          style={{
+            left: `${50 * zoom}px`, // player_x is 50 in the script
+            top: `${172 * zoom}px`, // player_y is 172 in the script
+            width: `${20 * zoom}px`, // PLAYER_WIDTH is 20
+            height: `${20 * zoom}px`, // PLAYER_HEIGHT is 20
+          }}
+        >
+          <div className="text-[8px] font-bold text-orange-500 uppercase tracking-tighter">Spawn</div>
+        </div>
+
         {/* Drag Preview (Block Tool) */}
         {isDragging && tool === "block" && dragStart && hoverTile && (
           <div
