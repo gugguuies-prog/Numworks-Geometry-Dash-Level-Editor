@@ -42,10 +42,10 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
     setDragStart(coords);
 
     if (tool === "spike") {
-      const existingSpike = getSpikeAt(coords.x, coords.y);
+      const existingSpike = getSpikeAt(coords.x, coords.y - 1);
       if (existingSpike) {
         const newSpikes = level.spikes.map(s => 
-          (s.x === coords.x && s.y === coords.y) 
+          (s.x === coords.x && s.y === coords.y - 1) 
             ? { ...s, orientation: s.orientation === 0 ? 1 : 0 } 
             : s
         );
@@ -53,7 +53,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
       } else {
         onChange({
           ...level,
-          spikes: [...level.spikes, { x: coords.x, y: coords.y, orientation: 0 }],
+          spikes: [...level.spikes, { x: coords.x, y: coords.y - 1, orientation: 0 }],
         });
       }
     } else if (tool === "eraser") {
@@ -99,7 +99,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
     const newBlocks = level.blocks.filter(b => 
       !(x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h)
     );
-    const newSpikes = level.spikes.filter(s => !(s.x === x && s.y === y));
+    const newSpikes = level.spikes.filter(s => !(s.x === x && (s.y === y || s.y === y - 1)));
     
     if (newBlocks.length !== level.blocks.length || newSpikes.length !== level.spikes.length) {
       onChange({ ...level, blocks: newBlocks, spikes: newSpikes });
