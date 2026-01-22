@@ -143,20 +143,18 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
         {level.spikes.map((spike, i) => (
           <div
             key={`spike-${i}`}
-            className="absolute flex items-end justify-center"
+            className="absolute flex items-center justify-center"
             style={{
               left: `${spike.x * TILE_W * zoom}px`,
-              top: `${spike.y * TILE_H * zoom}px`,
+              top: `${(spike.orientation === 0 ? spike.y - 1 : spike.y) * TILE_H * zoom}px`,
               width: `${TILE_W * zoom}px`,
               height: `${TILE_H * zoom}px`,
             }}
           >
             <div 
-              className={clsx(
-                "w-0 h-0",
-                spike.orientation === 0 ? "mb-[1px]" : "self-start"
-              )}
               style={{
+                width: 0,
+                height: 0,
                 borderLeft: `${(TILE_W * zoom) / 2}px solid transparent`,
                 borderRight: `${(TILE_W * zoom) / 2}px solid transparent`,
                 borderBottom: spike.orientation === 0 ? `${(TILE_H * zoom) / 2}px solid ${rgbString(level.groundColor)}` : 'none',
