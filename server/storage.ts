@@ -57,10 +57,9 @@ function parsePythonData(content: string): GameData {
       .replace(/#.*$/gm, '') // Remove comments
       .replace(/\(/g, '[')   // Replace tuple parens with brackets
       .replace(/\)/g, ']')
-      .replace(/'/g, '"')    // Replace single quotes if any (though none in sample)
-      .replace(/,\]/g, ']')  // Remove trailing commas inside lists
-      .replace(/,\]/g, ']')  // Repeat for nested
-      .replace(/,(\s*[\]\}])/g, '$1'); // Robust trailing comma removal
+      .replace(/'/g, '"')    // Replace single quotes
+      .replace(/,(\s*[\]])/g, '$1') // Robust trailing comma removal
+      .replace(/,(\s*[\]])/g, '$1'); // Double pass for nested arrays
 
     // Fix trailing comma at the end of the main list if present
     if (cleanString.endsWith(',]')) cleanString = cleanString.slice(0, -2) + ']';
@@ -81,7 +80,11 @@ function parsePythonData(content: string): GameData {
     const levels: Level[] = parsedRaw.map((lvl: any, index: number) => ({
       id: index,
       blocks: lvl[0].map((b: any) => ({ x: b[0], y: b[1], w: b[2], h: b[3] })),
-      spikes: lvl[1].map((s: any) => ({ x: s[0], y: s[1], orientation: s[2] })),
+      spikes: lvl[1].map((s: any) => {
+        let y = s[1];
+        if (s[2] === 0) y -= 1; // Shift UP on import for floor spikes (orientation 0)
+        return { x: s[0], y, orientation: s[2] };
+      }),
       endX: lvl[2],
       bgColor: lvl[3],
       groundColor: lvl[4],
@@ -99,7 +102,11 @@ function generatePythonContent(originalContent: string, data: GameData): string 
    // Reconstruct the levels string
    const levelsStr = "[\n" + data.levels.map(lvl => {
      const blocks = "[" + lvl.blocks.map(b => `[${b.x}, ${b.y}, ${b.w}, ${b.h}]`).join(", ") + "]";
-     const spikes = "[" + lvl.spikes.map(s => `[${s.x}, ${s.y}, ${s.orientation}]`).join(", ") + "]";
+     const spikes = "[" + lvl.spikes.map(s => {
+       let y = s.y;
+       if (s.orientation === 0) y += 1; // Shift DOWN on export for floor spikes (orientation 0)
+       return `[${s.x}, ${y}, ${s.orientation}]`;
+     }).join(", ") + "]";
      const bg = `(${lvl.bgColor.join(", ")})`;
      const ground = `(${lvl.groundColor.join(", ")})`;
      return `    (\n        ${blocks},\n        ${spikes},\n        ${lvl.endX}, ${bg}, ${ground}\n    )`;
