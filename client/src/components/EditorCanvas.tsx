@@ -146,7 +146,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
             className="absolute flex items-center justify-center"
             style={{
               left: `${spike.x * TILE_W * zoom}px`,
-              top: `${(spike.orientation === 0 ? spike.y - 1 : spike.y) * TILE_H * zoom}px`,
+              top: `${spike.y * TILE_H * zoom}px`,
               width: `${TILE_W * zoom}px`,
               height: `${TILE_H * zoom}px`,
             }}
