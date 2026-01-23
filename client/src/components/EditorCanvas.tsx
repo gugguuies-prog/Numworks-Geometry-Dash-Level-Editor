@@ -143,7 +143,10 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
         {level.spikes.map((spike, i) => (
           <div
             key={`spike-${i}`}
-            className="absolute flex items-center justify-center"
+            className={clsx(
+              "absolute flex justify-center",
+              spike.orientation === 0 ? "items-end" : "items-start"
+            )}
             style={{
               left: `${spike.x * TILE_W * zoom}px`,
               top: `${spike.y * TILE_H * zoom}px`,
@@ -157,8 +160,8 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
                 height: 0,
                 borderLeft: `${(TILE_W * zoom) / 2}px solid transparent`,
                 borderRight: `${(TILE_W * zoom) / 2}px solid transparent`,
-                borderBottom: spike.orientation === 0 ? `${TILE_H * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
-                borderTop: spike.orientation === 1 ? `${TILE_H * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
+                borderBottom: spike.orientation === 0 ? `${TILE_H * 0.7 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
+                borderTop: spike.orientation === 1 ? `${TILE_H * 0.7 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
               }}
             />
           </div>
