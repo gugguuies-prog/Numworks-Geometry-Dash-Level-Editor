@@ -29,7 +29,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
     const rect = canvasRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / (TILE_W * zoom);
     const y = Math.floor((e.clientY - rect.top) / (TILE_H * zoom));
-    return { x: Math.max(0, Math.floor(x)), y: Math.max(0, Math.min(6, y)) }; // Clamp Y to ~7 rows (222px / 32px)
+    return { x: Math.max(0, Math.round(x * 10) / 10), y: Math.max(0, Math.min(6, y)) }; // Precision de 1 pixel (0.1 tile)
   };
 
   const getSpikeAt = (x: number, y: number) => {
@@ -152,14 +152,15 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
               top: `${spike.y * TILE_H * zoom}px`,
               width: `${TILE_W * zoom}px`,
               height: `${TILE_H * zoom}px`,
+              zIndex: 1, // Ensure spikes are above blocks if needed
             }}
           >
             <div 
               style={{
                 width: 0,
                 height: 0,
-                borderLeft: `${(TILE_W * zoom) / 2}px solid transparent`,
-                borderRight: `${(TILE_W * zoom) / 2}px solid transparent`,
+                borderLeft: `${(TILE_W * 0.8 * zoom) / 2}px solid transparent`,
+                borderRight: `${(TILE_W * 0.8 * zoom) / 2}px solid transparent`,
                 borderBottom: spike.orientation === 0 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
                 borderTop: spike.orientation === 1 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
               }}
@@ -208,6 +209,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
               top: `${hoverTile.y * TILE_H * zoom}px`,
               width: `${TILE_W * zoom}px`,
               height: `${TILE_H * zoom}px`,
+              opacity: tool === "spike" ? 0.7 : 1,
             }}
           />
         )}

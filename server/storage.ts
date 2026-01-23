@@ -56,7 +56,7 @@ function parsePythonData(content: string): GameData {
       spikes: lvl[1].map((s: any) => {
         let y = s[1];
         if (s[2] === 0) y -= 1; 
-        return { x: s[0], y, orientation: s[2] };
+        return { x: s[0] / 10, y, orientation: s[2] }; // Python units (1px) to Tile units (10px) -> divide by 10
       }),
       endX: lvl[2],
       bgColor: lvl[3],
@@ -76,7 +76,7 @@ async function generatePythonContent(data: GameData): Promise<string> {
      const spikes = "[" + lvl.spikes.map(s => {
        let y = s.y;
        if (s.orientation === 0) y += 1; 
-       return `[${s.x}, ${y}, ${s.orientation}]`;
+       return `[${Math.round(s.x * 10)}, ${y}, ${s.orientation}]`; // Convert back to Python 1px units (10 per tile)
      }).join(", ") + "]";
      const bg = `(${lvl.bgColor.join(", ")})`;
      const ground = `(${lvl.groundColor.join(", ")})`;
