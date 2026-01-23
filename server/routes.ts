@@ -38,7 +38,7 @@ export async function registerRoutes(
       const data = await storage.getUserLevel(req.user.id);
       if (!data) return res.status(404).json({ message: "No levels found" });
       
-      const content = storage.generatePython(data);
+      const content = await storage.generatePython(data);
       res.setHeader('Content-Disposition', 'attachment; filename="gd_edited.py"');
       res.setHeader('Content-Type', 'text/x-python');
       res.send(content);
