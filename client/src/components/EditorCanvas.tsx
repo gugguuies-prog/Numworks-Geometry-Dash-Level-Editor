@@ -27,9 +27,9 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
   const getTileCoords = (e: React.MouseEvent) => {
     if (!canvasRef.current) return { x: 0, y: 0 };
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / (TILE_W * zoom));
+    const x = (e.clientX - rect.left) / (TILE_W * zoom);
     const y = Math.floor((e.clientY - rect.top) / (TILE_H * zoom));
-    return { x: Math.max(0, x), y: Math.max(0, Math.min(6, y)) }; // Clamp Y to ~7 rows (222px / 32px)
+    return { x: Math.max(0, Math.floor(x)), y: Math.max(0, Math.min(6, y)) }; // Clamp Y to ~7 rows (222px / 32px)
   };
 
   const getSpikeAt = (x: number, y: number) => {
