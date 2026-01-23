@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Save, Download, Plus, Trash2, Upload,
   MousePointer2, Square, Triangle, Eraser, 
-  Settings, Layers, Monitor, Play, LogOut
+  Settings, Layers, Monitor, Play, LogOut, Loader2
 } from "lucide-react";
 import { 
   Tooltip, 
@@ -121,13 +121,50 @@ export default function Editor() {
 
   const currentLevel = localGameData?.levels.find(l => l.id === selectedLevelId);
 
-  if (isLoading || !localGameData || !currentLevel) {
+  // If no level is selected but we have levels, select the first one
+  useEffect(() => {
+    if (localGameData && localGameData.levels.length > 0 && !currentLevel) {
+      setSelectedLevelId(localGameData.levels[0].id);
+    }
+  }, [localGameData, currentLevel]);
+
+  if (isLoading || !localGameData) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background text-foreground">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           <p className="font-mono animate-pulse">Initializing Editor Protocol...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Handle case where user has no levels yet
+  if (localGameData.levels.length === 0) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background text-foreground">
+        <div className="flex flex-col items-center gap-6 max-w-md text-center p-6">
+          <Monitor className="w-16 h-16 text-primary animate-pulse" />
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold">Welcome to Level Studio</h2>
+            <p className="text-muted-foreground">You don't have any levels yet. Create your first one to start designing!</p>
+          </div>
+          <Button onClick={handleAddLevel} size="lg" className="w-full gap-2">
+            <Plus className="w-5 h-5" /> Create First Level
+          </Button>
+          <Button variant="ghost" onClick={() => logout.mutate()} className="gap-2">
+            <LogOut className="w-4 h-4" /> Logout
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Ensure currentLevel exists before rendering editor
+  if (!currentLevel) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background text-foreground">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
