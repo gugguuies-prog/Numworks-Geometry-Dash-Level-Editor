@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLevels, useUpdateLevels, useExportScript } from "@/hooks/use-levels";
+import { useLevels, useUpdateLevels, useExportScript, useAuth } from "@/hooks/use-levels";
 import { EditorCanvas } from "@/components/EditorCanvas";
 import { ColorInput } from "@/components/ColorPicker";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Save, Download, Plus, Trash2, Upload,
   MousePointer2, Square, Triangle, Eraser, 
-  Settings, Layers, Monitor, Play
+  Settings, Layers, Monitor, Play, LogOut
 } from "lucide-react";
 import { 
   Tooltip, 
@@ -26,6 +26,7 @@ export default function Editor() {
   const { data: gameData, isLoading } = useLevels();
   const updateMutation = useUpdateLevels();
   const exportScript = useExportScript();
+  const { logout } = useAuth();
   
   const [selectedLevelId, setSelectedLevelId] = useState<number>(0);
   const [localGameData, setLocalGameData] = useState(gameData);
@@ -168,11 +169,19 @@ export default function Editor() {
           </Button>
           <Button 
             variant="outline" 
-            onClick={exportScript}
+            onClick={handleExport}
             className="font-mono text-xs gap-2 border-primary/20 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
           >
             <Download className="w-4 h-4" />
             EXPORT .PY
+          </Button>
+          <Button 
+            variant="ghost" 
+            onClick={() => logout.mutate()}
+            className="font-mono text-xs gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            LOGOUT
           </Button>
         </div>
       </header>
