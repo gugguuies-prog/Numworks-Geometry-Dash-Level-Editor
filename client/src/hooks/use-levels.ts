@@ -112,3 +112,35 @@ export function useUpdateLevels() {
     },
   });
 }
+
+export function useExportScript() {
+  const { toast } = useToast();
+
+  return async () => {
+    try {
+      const res = await fetch("/api/export");
+      if (!res.ok) throw new Error("Failed to export script");
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'gd.py';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Exported!",
+        description: "gd.py has been downloaded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+}
