@@ -1,61 +1,34 @@
 import type { Express } from "express";
 import type { Server } from "http";
+import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
-import { z } from "zod";
+import { gameDataSchema } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  setupAuth(app);
 
   app.get(api.levels.list.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const data = await storage.getGameData();
-      res.json(data);
+      const data = await storage.getUserLevel(req.user.id);
+      res.json(data || { levels: [] });
     } catch (e) {
       res.status(500).json({ message: "Failed to load game data" });
     }
   });
 
   app.put(api.levels.update.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
-      const data = api.levels.update.input.parse(req.body);
-      const updated = await storage.updateGameData(data);
-      res.json(updated);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        res.status(400).json({
-          message: err.errors[0].message,
-          field: err.errors[0].path.join('.'),
-        });
-      } else {
-        res.status(500).json({ message: "Failed to update game data" });
-      }
-    }
-  });
-
-  app.get(api.levels.export.path, async (req, res) => {
-    try {
-      const content = await storage.getScriptContent();
-      res.setHeader('Content-Disposition', 'attachment; filename="gd_edited.py"');
-      res.setHeader('Content-Type', 'text/x-python');
-      res.send(content);
-    } catch (e) {
-      res.status(500).json({ message: "Failed to export script" });
-    }
-  });
-
-  app.post(api.levels.import.path, async (req, res) => {
-    try {
-      const content = req.body.content;
-      if (!content) {
-        return res.status(400).json({ message: "No content provided" });
-      }
-      const data = await storage.importPythonData(content);
+      const data = gameDataSchema.parse(req.body);
+      await storage.updateUserLevel(req.user.id, data);
       res.json(data);
-    } catch (e) {
-      res.status(500).json({ message: "Failed to import script" });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update game data" });
     }
   });
 
