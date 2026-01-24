@@ -162,6 +162,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
                 borderRight: `${(TILE_W * zoom) / 2}px solid transparent`,
                 borderBottom: spike.orientation === 0 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
                 borderTop: spike.orientation === 1 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
+                transform: 'scaleX(1.1)', // Légèrement plus large pour supprimer le gap visuel
               }}
             />
           </div>
