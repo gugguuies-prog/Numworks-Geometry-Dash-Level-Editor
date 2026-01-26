@@ -13,13 +13,14 @@ declare global {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: "super-secret-key",
+    secret: process.env.SESSION_SECRET || "super-secret-key",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: app.get("env") === "production",
+      secure: false, // Set to false for development to allow session cookie over HTTP
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      sameSite: "lax",
     },
   };
 
@@ -35,7 +36,7 @@ export function setupAuth(app: Express) {
     new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
       try {
         const user = await storage.getUserByEmail(email);
-        if (!user || user.password !== password) { // In a real app, use bcrypt!
+        if (!user || user.password !== password) {
           return done(null, false, { message: "Invalid email or password" });
         }
         return done(null, user);
