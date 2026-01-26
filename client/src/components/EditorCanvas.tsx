@@ -51,10 +51,17 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
         );
         onChange({ ...level, spikes: newSpikes });
       } else {
-        onChange({
-          ...level,
-          spikes: [...level.spikes, { x: coords.x, y: coords.y, orientation: 0 }],
-        });
+        // En v1.4, les spikes doivent être espacés de 2 crans pour être collés sur NumWorks
+        // On aligne donc le placement sur une grille de 2x1 pour les spikes
+        const alignedX = Math.floor(coords.x / 2) * 2;
+        const alreadyExists = level.spikes.find(s => s.x === alignedX && s.y === coords.y);
+        
+        if (!alreadyExists) {
+          onChange({
+            ...level,
+            spikes: [...level.spikes, { x: alignedX, y: coords.y, orientation: 0 }],
+          });
+        }
       }
     } else if (tool === "pad") {
       const existingPad = level.pads?.find(p => p[0] === coords.x && p[1] === coords.y);
@@ -159,7 +166,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
             style={{
               left: `${spike.x * TILE_W * zoom}px`,
               top: `${spike.y * TILE_H * zoom}px`,
-              width: `${TILE_W * zoom}px`,
+              width: `${TILE_W * 2 * zoom}px`, // Largeur doublée pour correspondre au moteur v1.4
               height: `${TILE_H * zoom}px`,
             }}
           >
@@ -167,11 +174,11 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
               style={{
                 width: 0,
                 height: 0,
-                borderLeft: `${(TILE_W * zoom) / 2}px solid transparent`,
-                borderRight: `${(TILE_W * zoom) / 2}px solid transparent`,
+                borderLeft: `${(TILE_W * zoom)}px solid transparent`,
+                borderRight: `${(TILE_W * zoom)}px solid transparent`,
                 borderBottom: spike.orientation === 0 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
                 borderTop: spike.orientation === 1 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
-                transform: 'scaleX(1.1)', // Légèrement plus large pour supprimer le gap visuel
+                transform: 'scaleX(1.05)', // Toujours un léger scale pour éviter les fissures
               }}
             />
           </div>
@@ -239,9 +246,9 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
           <div
             className="absolute border-2 border-primary/50 pointer-events-none"
             style={{
-              left: `${hoverTile.x * TILE_W * zoom}px`,
+              left: `${(tool === "spike" ? Math.floor(hoverTile.x / 2) * 2 : hoverTile.x) * TILE_W * zoom}px`,
               top: `${hoverTile.y * TILE_H * zoom}px`,
-              width: `${TILE_W * zoom}px`,
+              width: `${(tool === "spike" ? 2 : 1) * TILE_W * zoom}px`,
               height: `${TILE_H * zoom}px`,
             }}
           />
