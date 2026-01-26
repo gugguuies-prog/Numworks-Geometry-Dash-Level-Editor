@@ -203,7 +203,7 @@ export default function Editor() {
           </div>
           <div>
             <h1 className="text-lg font-bold leading-none tracking-tight">Numworks GD Editor</h1>
-            <p className="text-xs text-muted-foreground font-mono mt-1">v1.4.0 • {localGameData.levels.length} Levels Loaded</p>
+            <p className="text-xs text-muted-foreground font-mono mt-1">v1.4.1 • {localGameData.levels.length} Levels Loaded</p>
           </div>
         </div>
 

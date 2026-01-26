@@ -257,9 +257,10 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
           <div
             className="absolute border-2 border-primary/50 pointer-events-none"
             style={{
-              left: `${(tool !== "cursor" ? Math.floor(hoverTile.x / 2) * 2 : hoverTile.x) * TILE_W * zoom}px`,
+              // Tous les outils (y compris le curseur v1.4.1) sont maintenant sur la grille de 2
+              left: `${Math.floor(hoverTile.x / 2) * 2 * TILE_W * zoom}px`,
               top: `${hoverTile.y * TILE_H * zoom}px`,
-              width: `${(tool !== "cursor" ? 2 : 1) * TILE_W * zoom}px`,
+              width: `${2 * TILE_W * zoom}px`,
               height: `${TILE_H * zoom}px`,
             }}
           />
