@@ -63,12 +63,14 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
         }
       }
     } else if (tool === "pad") {
+      // En v1.4, les pads ont un décalage de -1 cran sur NumWorks pour être bien alignés
       const alignedX = Math.floor(coords.x / 2) * 2;
-      const existingPad = level.pads?.find(p => p[0] === alignedX && p[1] === coords.y);
+      const offsetDataX = alignedX - 1; 
+      const existingPad = level.pads?.find(p => p[0] === offsetDataX && p[1] === coords.y);
       if (!existingPad) {
         onChange({
           ...level,
-          pads: [...(level.pads || []), [alignedX, coords.y]],
+          pads: [...(level.pads || []), [offsetDataX, coords.y]],
         });
       }
     } else if (tool === "eraser") {
@@ -122,7 +124,8 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
       !(x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h)
     );
     const newSpikes = level.spikes.filter(s => !(s.x === x && s.y === y));
-    const newPads = (level.pads || []).filter(p => !(p[0] === x && p[1] === y));
+    // On vérifie aussi les pads avec leur décalage de -1
+    const newPads = (level.pads || []).filter(p => !(p[0] === x - 1 && p[1] === y));
     
     if (newBlocks.length !== level.blocks.length || newSpikes.length !== level.spikes.length || newPads.length !== (level.pads || []).length) {
       onChange({ ...level, blocks: newBlocks, spikes: newSpikes, pads: newPads });
@@ -197,7 +200,9 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
             key={`pad-${i}`}
             className="absolute flex items-end justify-center"
             style={{
-              left: `${pad[0] * TILE_W * zoom}px`,
+              // On affiche le pad avec un décalage visuel inverse (+1) pour que l'utilisateur 
+              // le voie là où il clique, même si en donnée il est à x-1
+              left: `${(pad[0] + 1) * TILE_W * zoom}px`,
               top: `${pad[1] * TILE_H * zoom}px`,
               width: `${TILE_W * 2 * zoom}px`, // Largeur 2 crans
               height: `${TILE_H * zoom}px`,
