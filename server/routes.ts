@@ -61,7 +61,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/export-optimized", async (req, res) => {
+  app.get("/api/export-optimized", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     try {
       const data = await storage.getUserLevel(req.user.id);
@@ -69,7 +69,7 @@ export async function registerRoutes(
       
       const content = await storage.generatePython(data);
       
-      // Call external minify API
+      // Call external minify API using POST
       const minifyRes = await fetch("https://python-minify-api--gugguuies.replit.app/api/minify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -77,10 +77,15 @@ export async function registerRoutes(
       });
       
       if (!minifyRes.ok) {
-        throw new Error("Minification service failed");
+        throw new Error(`Minification service failed with status: ${minifyRes.status}`);
       }
       
       const minifyData = await minifyRes.json();
+      
+      if (!minifyData.minimizedCode) {
+        throw new Error("Minification service returned invalid response");
+      }
+
       res.setHeader('Content-Disposition', 'attachment; filename="gd_optimized.py"');
       res.setHeader('Content-Type', 'text/x-python');
       res.send(minifyData.minimizedCode);
