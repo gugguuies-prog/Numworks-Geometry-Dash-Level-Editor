@@ -38,16 +38,21 @@ function parsePythonData(content: string): GameData {
 
     const levelsString = content.substring(listStart + 1, endIndex).trim();
 
-    let cleanString = "[" + levelsString
+    // The levels in v1.1.2 are [blocks, spikes, endX, bg, ground, name, completed, attempts, author, pads]
+    // We need to be careful with the outer brackets.
+    // Let's wrap it in brackets to make it a valid JSON array after cleaning
+    let cleanString = levelsString
       .replace(/#.*$/gm, '') 
       .replace(/\(/g, '[')   
       .replace(/\)/g, ']')
       .replace(/'/g, '"')    
+      .replace(/"/g, '"') // ensure double quotes
       .replace(/,(\s*[\]])/g, '$1') 
       .replace(/,(\s*[\]])/g, '$1'); 
 
-    if (cleanString.endsWith(',]')) cleanString = cleanString.slice(0, -2) + ']';
-    if (!cleanString.endsWith(']')) cleanString += ']';
+    // Handle the fact that levelsString is a list of lists/tuples
+    if (!cleanString.trim().startsWith("[")) cleanString = "[" + cleanString;
+    if (!cleanString.trim().endsWith("]")) cleanString = cleanString + "]";
 
     const parsedRaw = JSON.parse(cleanString);
     

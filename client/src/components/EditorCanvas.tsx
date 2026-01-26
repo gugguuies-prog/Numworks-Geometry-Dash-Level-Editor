@@ -5,7 +5,7 @@ import clsx from "clsx";
 
 interface EditorCanvasProps {
   level: Level;
-  tool: "cursor" | "block" | "spike" | "eraser";
+  tool: "cursor" | "block" | "spike" | "eraser" | "pad";
   onChange: (updatedLevel: Level) => void;
   zoom?: number;
 }
@@ -56,6 +56,14 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
           spikes: [...level.spikes, { x: coords.x, y: coords.y, orientation: 0 }],
         });
       }
+    } else if (tool === "pad") {
+      const existingPad = level.pads?.find(p => p[0] === coords.x && p[1] === coords.y);
+      if (!existingPad) {
+        onChange({
+          ...level,
+          pads: [...(level.pads || []), [coords.x, coords.y]],
+        });
+      }
     } else if (tool === "eraser") {
       deleteAt(coords.x, coords.y);
     }
@@ -100,9 +108,10 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
       !(x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h)
     );
     const newSpikes = level.spikes.filter(s => !(s.x === x && s.y === y));
+    const newPads = (level.pads || []).filter(p => !(p[0] === x && p[1] === y));
     
-    if (newBlocks.length !== level.blocks.length || newSpikes.length !== level.spikes.length) {
-      onChange({ ...level, blocks: newBlocks, spikes: newSpikes });
+    if (newBlocks.length !== level.blocks.length || newSpikes.length !== level.spikes.length || newPads.length !== (level.pads || []).length) {
+      onChange({ ...level, blocks: newBlocks, spikes: newSpikes, pads: newPads });
     }
   };
 
@@ -163,6 +172,31 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
                 borderBottom: spike.orientation === 0 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
                 borderTop: spike.orientation === 1 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
                 transform: 'scaleX(1.1)', // Légèrement plus large pour supprimer le gap visuel
+              }}
+            />
+          </div>
+        ))}
+
+        {/* Render Pads */}
+        {(level.pads || []).map((pad, i) => (
+          <div
+            key={`pad-${i}`}
+            className="absolute flex items-end justify-center"
+            style={{
+              left: `${pad[0] * TILE_W * zoom}px`,
+              top: `${pad[1] * TILE_H * zoom}px`,
+              width: `${TILE_W * zoom}px`,
+              height: `${TILE_H * zoom}px`,
+            }}
+          >
+            <div 
+              style={{
+                width: `${TILE_W * 2 * zoom}px`,
+                height: `${TILE_H * 0.3 * zoom}px`,
+                backgroundColor: 'yellow',
+                borderRadius: '2px',
+                transform: 'translateX(-25%)',
+                boxShadow: '0 0 10px rgba(255,255,0,0.5)'
               }}
             />
           </div>

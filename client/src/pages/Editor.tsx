@@ -8,7 +8,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Save, Download, Plus, Trash2, Upload,
   MousePointer2, Square, Triangle, Eraser, 
-  Settings, Layers, Monitor, Play, LogOut, Loader2
+  Settings, Layers, Monitor, Play, LogOut, Loader2,
+  CircleDot
 } from "lucide-react";
 import { 
   Tooltip, 
@@ -20,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import clsx from "clsx";
 import type { Level } from "@shared/schema";
 
-type ToolType = "cursor" | "block" | "spike" | "eraser";
+type ToolType = "cursor" | "block" | "spike" | "eraser" | "pad";
 
 export default function Editor() {
   const { data: gameData, isLoading } = useLevels();
@@ -289,6 +290,12 @@ export default function Editor() {
               onClick={() => setActiveTool("spike")} 
               icon={Triangle} 
               tooltip="Spike Tool (S)" 
+            />
+            <ToolButton 
+              active={activeTool === "pad"} 
+              onClick={() => setActiveTool("pad")} 
+              icon={CircleDot} 
+              tooltip="Pad Tool (P)" 
             />
             <div className="w-px bg-border mx-1 h-6 self-center" />
             <ToolButton 
