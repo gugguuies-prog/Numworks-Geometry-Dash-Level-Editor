@@ -174,9 +174,9 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
               spike.orientation === 0 ? "items-end" : "items-start"
             )}
             style={{
-              left: `${spike.x * TILE_W * zoom}px`,
+              left: `${(spike.x + 0.5) * TILE_W * zoom}px`, // Décalage de 0.5 cran pour centrer sur la grille NumWorks
               top: `${spike.y * TILE_H * zoom}px`,
-              width: `${TILE_W * 2 * zoom}px`, // Largeur doublée pour correspondre au moteur v1.4
+              width: `${TILE_W * zoom}px`, // Largeur simple (1 cran) pour le visuel du pic lui-même
               height: `${TILE_H * zoom}px`,
             }}
           >
@@ -184,11 +184,11 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
               style={{
                 width: 0,
                 height: 0,
-                borderLeft: `${(TILE_W * zoom)}px solid transparent`,
-                borderRight: `${(TILE_W * zoom)}px solid transparent`,
+                borderLeft: `${(TILE_W * zoom) / 2}px solid transparent`,
+                borderRight: `${(TILE_W * zoom) / 2}px solid transparent`,
                 borderBottom: spike.orientation === 0 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
                 borderTop: spike.orientation === 1 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
-                transform: 'scaleX(1.05)', // Toujours un léger scale pour éviter les fissures
+                transform: 'scaleX(1.1)', 
               }}
             />
           </div>
