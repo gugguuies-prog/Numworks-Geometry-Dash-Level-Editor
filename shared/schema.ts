@@ -57,6 +57,11 @@ export const levelSchema = z.object({
   endX: z.number(),
   bgColor: colorSchema,
   groundColor: colorSchema,
+  name: z.string().default("New Level"),
+  author: z.string().default("Unknown"),
+  attempts: z.number().default(0),
+  completed: z.number().default(0),
+  pads: z.array(z.tuple([z.number(), z.number()])).default([]),
 });
 
 export const gameDataSchema = z.object({

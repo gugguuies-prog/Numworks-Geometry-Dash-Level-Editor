@@ -66,7 +66,12 @@ export default function Editor() {
       spikes: [],
       endX: 100,
       bgColor: [30, 30, 30],
-      groundColor: [100, 100, 255]
+      groundColor: [100, 100, 255],
+      name: `Level ${newId + 1}`,
+      author: "Unknown",
+      attempts: 0,
+      completed: 0,
+      pads: []
     };
     setLocalGameData({
       ...localGameData,
@@ -179,7 +184,7 @@ export default function Editor() {
           </div>
           <div>
             <h1 className="text-lg font-bold leading-none tracking-tight">Numworks GD Editor</h1>
-            <p className="text-xs text-muted-foreground font-mono mt-1">v1.0.0 • {localGameData.levels.length} Levels Loaded</p>
+            <p className="text-xs text-muted-foreground font-mono mt-1">v1.4.0 • {localGameData.levels.length} Levels Loaded</p>
           </div>
         </div>
 
@@ -244,9 +249,9 @@ export default function Editor() {
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <span className="font-mono">Level {level.id + 1}</span>
+                <span className="font-mono">{level.name || `Level ${level.id + 1}`}</span>
                 <span className="text-xs ml-2 opacity-50 block">
-                  {level.blocks.length} blocks • {level.spikes.length} spikes
+                  {level.blocks.length} blocks • {level.spikes.length} spikes • {level.author || 'Unknown'}
                 </span>
                 
                 {selectedLevelId === level.id && localGameData.levels.length > 1 && (
@@ -327,6 +332,22 @@ export default function Editor() {
           <div className="p-6 space-y-8">
             {/* Level Settings */}
             <div className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Level Name</h3>
+                <Input 
+                  value={currentLevel.name}
+                  onChange={(e) => handleLevelChange({ ...currentLevel, name: e.target.value })}
+                  className="font-mono"
+                />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Author</h3>
+                <Input 
+                  value={currentLevel.author}
+                  onChange={(e) => handleLevelChange({ ...currentLevel, author: e.target.value })}
+                  className="font-mono"
+                />
+              </div>
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium">Level Length</h3>
                 <span className="text-xs text-muted-foreground font-mono">{currentLevel.endX} tiles</span>
