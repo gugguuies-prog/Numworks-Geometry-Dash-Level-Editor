@@ -72,7 +72,10 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
         });
       }
     } else if (tool === "eraser") {
-      deleteAt(coords.x, coords.y);
+      // Pour l'effaceur, on supprime sur une largeur de 2 crans pour être cohérent avec les objets v1.4
+      const alignedX = Math.floor(coords.x / 2) * 2;
+      deleteAt(alignedX, coords.y);
+      deleteAt(alignedX + 1, coords.y);
     }
   };
 
@@ -82,7 +85,9 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
 
     if (isDragging) {
       if (tool === "eraser") {
-        deleteAt(coords.x, coords.y);
+        const alignedX = Math.floor(coords.x / 2) * 2;
+        deleteAt(alignedX, coords.y);
+        deleteAt(alignedX + 1, coords.y);
       } else if (tool === "block" && dragStart) {
         // Preview handled by render overlay
       }
@@ -247,9 +252,9 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
           <div
             className="absolute border-2 border-primary/50 pointer-events-none"
             style={{
-              left: `${(tool !== "cursor" && tool !== "eraser" ? Math.floor(hoverTile.x / 2) * 2 : hoverTile.x) * TILE_W * zoom}px`,
+              left: `${(tool !== "cursor" ? Math.floor(hoverTile.x / 2) * 2 : hoverTile.x) * TILE_W * zoom}px`,
               top: `${hoverTile.y * TILE_H * zoom}px`,
-              width: `${(tool !== "cursor" && tool !== "eraser" ? 2 : 1) * TILE_W * zoom}px`,
+              width: `${(tool !== "cursor" ? 2 : 1) * TILE_W * zoom}px`,
               height: `${TILE_H * zoom}px`,
             }}
           />
