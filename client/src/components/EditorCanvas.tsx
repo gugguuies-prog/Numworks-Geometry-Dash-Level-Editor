@@ -51,8 +51,7 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
         );
         onChange({ ...level, spikes: newSpikes });
       } else {
-        // En v1.4, les spikes doivent être espacés de 2 crans pour être collés sur NumWorks
-        // On aligne donc le placement sur une grille de 2x1 pour les spikes
+        // En v1.4, tout doit être aligné sur 2 crans pour la calculatrice
         const alignedX = Math.floor(coords.x / 2) * 2;
         const alreadyExists = level.spikes.find(s => s.x === alignedX && s.y === coords.y);
         
@@ -64,11 +63,12 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
         }
       }
     } else if (tool === "pad") {
-      const existingPad = level.pads?.find(p => p[0] === coords.x && p[1] === coords.y);
+      const alignedX = Math.floor(coords.x / 2) * 2;
+      const existingPad = level.pads?.find(p => p[0] === alignedX && p[1] === coords.y);
       if (!existingPad) {
         onChange({
           ...level,
-          pads: [...(level.pads || []), [coords.x, coords.y]],
+          pads: [...(level.pads || []), [alignedX, coords.y]],
         });
       }
     } else if (tool === "eraser") {
@@ -93,13 +93,15 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
     const coords = getTileCoords(e);
     
     if (isDragging && tool === "block" && dragStart) {
-      const x = Math.min(dragStart.x, coords.x);
+      // Aligner sur la grille de 2 crans
+      const alignedStartX = Math.floor(dragStart.x / 2) * 2;
+      const alignedCoordsX = Math.floor(coords.x / 2) * 2;
+      
+      const x = Math.min(alignedStartX, alignedCoordsX);
       const y = Math.min(dragStart.y, coords.y);
-      const w = Math.abs(coords.x - dragStart.x) + 1;
+      const w = Math.abs(alignedCoordsX - alignedStartX) + 2; // +2 pour la largeur minimale de bloc
       const h = Math.abs(coords.y - dragStart.y) + 1;
 
-      // Check for overlap/merge logic could go here, for now just add
-      // Ideally we merge overlapping blocks but keeping it simple for MVP
       onChange({
         ...level,
         blocks: [...level.blocks, { x, y, w, h }],
@@ -192,17 +194,16 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
             style={{
               left: `${pad[0] * TILE_W * zoom}px`,
               top: `${pad[1] * TILE_H * zoom}px`,
-              width: `${TILE_W * zoom}px`,
+              width: `${TILE_W * 2 * zoom}px`, // Largeur 2 crans
               height: `${TILE_H * zoom}px`,
             }}
           >
             <div 
               style={{
-                width: `${TILE_W * 2 * zoom}px`,
+                width: `${TILE_W * 2 * zoom}px`, // Largeur 2 crans
                 height: `${TILE_H * 0.3 * zoom}px`,
                 backgroundColor: 'yellow',
                 borderRadius: '2px',
-                transform: 'translateX(-25%)',
                 boxShadow: '0 0 10px rgba(255,255,0,0.5)'
               }}
             />
@@ -233,9 +234,9 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
           <div
             className="absolute bg-white/30 border border-white/50 pointer-events-none"
             style={{
-              left: `${Math.min(dragStart.x, hoverTile.x) * TILE_W * zoom}px`,
+              left: `${Math.min(Math.floor(dragStart.x / 2) * 2, Math.floor(hoverTile.x / 2) * 2) * TILE_W * zoom}px`,
               top: `${Math.min(dragStart.y, hoverTile.y) * TILE_H * zoom}px`,
-              width: `${(Math.abs(hoverTile.x - dragStart.x) + 1) * TILE_W * zoom}px`,
+              width: `${(Math.abs(Math.floor(hoverTile.x / 2) * 2 - Math.floor(dragStart.x / 2) * 2) + 2) * TILE_W * zoom}px`,
               height: `${(Math.abs(hoverTile.y - dragStart.y) + 1) * TILE_H * zoom}px`,
             }}
           />
@@ -246,9 +247,9 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
           <div
             className="absolute border-2 border-primary/50 pointer-events-none"
             style={{
-              left: `${(tool === "spike" ? Math.floor(hoverTile.x / 2) * 2 : hoverTile.x) * TILE_W * zoom}px`,
+              left: `${(tool !== "cursor" && tool !== "eraser" ? Math.floor(hoverTile.x / 2) * 2 : hoverTile.x) * TILE_W * zoom}px`,
               top: `${hoverTile.y * TILE_H * zoom}px`,
-              width: `${(tool === "spike" ? 2 : 1) * TILE_W * zoom}px`,
+              width: `${(tool !== "cursor" && tool !== "eraser" ? 2 : 1) * TILE_W * zoom}px`,
               height: `${TILE_H * zoom}px`,
             }}
           />
