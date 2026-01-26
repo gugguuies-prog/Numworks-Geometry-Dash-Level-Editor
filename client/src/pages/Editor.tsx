@@ -94,6 +94,24 @@ export default function Editor() {
     exportScript();
   };
 
+  const handleExportOptimized = async () => {
+    try {
+      const response = await fetch("/api/export-optimized");
+      if (!response.ok) throw new Error("Export failed");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "gd_optimized.py";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Optimized export failed", err);
+    }
+  };
+
   const handleImport = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -217,6 +235,14 @@ export default function Editor() {
           >
             <Download className="w-4 h-4" />
             EXPORT .PY
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleExportOptimized}
+            className="font-mono text-xs gap-2 border-primary/20 hover:bg-primary/10 hover:text-primary hover:border-primary/50 bg-primary/5 shadow-sm shadow-primary/10"
+          >
+            <Play className="w-4 h-4" />
+            EXPORT OPTIMIZED
           </Button>
           <Button 
             variant="ghost" 

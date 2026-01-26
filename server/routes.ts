@@ -61,5 +61,34 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/export-optimized", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    try {
+      const data = await storage.getUserLevel(req.user.id);
+      if (!data) return res.status(404).json({ message: "No levels found" });
+      
+      const content = await storage.generatePython(data);
+      
+      // Call external minify API
+      const minifyRes = await fetch("https://python-minify-api--gugguuies.replit.app/api/minify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: content })
+      });
+      
+      if (!minifyRes.ok) {
+        throw new Error("Minification service failed");
+      }
+      
+      const minifyData = await minifyRes.json();
+      res.setHeader('Content-Disposition', 'attachment; filename="gd_optimized.py"');
+      res.setHeader('Content-Type', 'text/x-python');
+      res.send(minifyData.minimizedCode);
+    } catch (e) {
+      console.error("Optimized export failed", e);
+      res.status(500).json({ message: "Failed to export optimized script" });
+    }
+  });
+
   return httpServer;
 }
