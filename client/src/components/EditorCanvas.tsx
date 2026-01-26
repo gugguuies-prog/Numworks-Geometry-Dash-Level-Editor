@@ -174,9 +174,9 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
               spike.orientation === 0 ? "items-end" : "items-start"
             )}
             style={{
-              left: `${(spike.x + 0.5) * TILE_W * zoom}px`, // Décalage de 0.5 cran pour centrer sur la grille NumWorks
+              left: `${spike.x * TILE_W * zoom}px`, // Retour à l'alignement simple sur la grille
               top: `${spike.y * TILE_H * zoom}px`,
-              width: `${TILE_W * zoom}px`, // Largeur simple (1 cran) pour le visuel du pic lui-même
+              width: `${TILE_W * 2 * zoom}px`, // On garde la largeur 2 pour la cohérence visuelle
               height: `${TILE_H * zoom}px`,
             }}
           >
@@ -184,11 +184,11 @@ export function EditorCanvas({ level, tool, onChange, zoom = 1 }: EditorCanvasPr
               style={{
                 width: 0,
                 height: 0,
-                borderLeft: `${(TILE_W * zoom) / 2}px solid transparent`,
-                borderRight: `${(TILE_W * zoom) / 2}px solid transparent`,
+                borderLeft: `${(TILE_W * zoom)}px solid transparent`,
+                borderRight: `${(TILE_W * zoom)}px solid transparent`,
                 borderBottom: spike.orientation === 0 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
                 borderTop: spike.orientation === 1 ? `${TILE_H * 0.39 * zoom}px solid ${rgbString(level.groundColor)}` : 'none',
-                transform: 'scaleX(1.1)', 
+                transform: 'scaleX(1.05)', 
               }}
             />
           </div>

@@ -82,7 +82,8 @@ async function generatePythonContent(data: GameData): Promise<string> {
      const spikes = "[" + lvl.spikes.map(s => {
        let y = s.y;
        if (s.orientation === 0) y += 1; 
-       return `[${s.x}, ${y}, ${s.orientation}]`;
+       // On décale chaque spike de +1 vers la droite lors de l'exportation pour NumWorks
+       return `[${s.x + 1}, ${y}, ${s.orientation}]`;
      }).join(", ") + "]";
      const bg = `(${lvl.bgColor.join(", ")})`;
      const ground = `(${lvl.groundColor.join(", ")})`;
