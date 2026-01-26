@@ -17,6 +17,7 @@ function parsePythonData(content: string): GameData {
     const listStart = content.indexOf("[", levelsStart + 9);
     if (listStart === -1) throw new Error("Could not find start of levels list");
 
+    // Extract the content of the levels list accurately
     let braceCount = 0;
     let endIndex = -1;
     let foundStart = false;
@@ -36,42 +37,36 @@ function parsePythonData(content: string): GameData {
 
     if (endIndex === -1) throw new Error("Could not find end of levels list");
 
-    const levelsString = content.substring(listStart + 1, endIndex).trim();
+    const levelsString = content.substring(listStart, endIndex + 1).trim();
 
-    // The levels in v1.1.2 are [blocks, spikes, endX, bg, ground, name, completed, attempts, author, pads]
-    // We need to be careful with the outer brackets.
-    // Let's wrap it in brackets to make it a valid JSON array after cleaning
+    // Cleaning Python syntax to make it JSON-compatible
     let cleanString = levelsString
-      .replace(/#.*$/gm, '') 
-      .replace(/\(/g, '[')   
+      .replace(/#.*$/gm, '') // Remove comments
+      .replace(/\(/g, '[')   // Tuples to arrays
       .replace(/\)/g, ']')
-      .replace(/'/g, '"')    
-      .replace(/"/g, '"') // ensure double quotes
+      .replace(/'/g, '"')    // Single quotes to double quotes
+      // Handle trailing commas in arrays/objects
       .replace(/,(\s*[\]])/g, '$1') 
       .replace(/,(\s*[\]])/g, '$1'); 
-
-    // Handle the fact that levelsString is a list of lists/tuples
-    if (!cleanString.trim().startsWith("[")) cleanString = "[" + cleanString;
-    if (!cleanString.trim().endsWith("]")) cleanString = cleanString + "]";
 
     const parsedRaw = JSON.parse(cleanString);
     
     const levels: Level[] = parsedRaw.map((lvl: any, index: number) => ({
       id: index,
-      blocks: lvl[0].map((b: any) => ({ x: b[0], y: b[1], w: b[2], h: b[3] })),
-      spikes: lvl[1].map((s: any) => {
+      blocks: (lvl[0] || []).map((b: any) => ({ x: b[0], y: b[1], w: b[2], h: b[3] })),
+      spikes: (lvl[1] || []).map((s: any) => {
         let y = s[1];
         if (s[2] === 0) y -= 1; 
         return { x: s[0], y, orientation: s[2] };
       }),
-      endX: lvl[2],
-      bgColor: lvl[3],
-      groundColor: lvl[4],
-      name: lvl[5] || "New Level",
-      author: lvl[8] || "Unknown",
-      attempts: lvl[7] || 0,
+      endX: lvl[2] || 100,
+      bgColor: lvl[3] || [0, 0, 0],
+      groundColor: lvl[4] || [255, 255, 255],
+      name: lvl[5] || `Level ${index + 1}`,
       completed: lvl[6] || 0,
-      pads: lvl[9] || []
+      attempts: lvl[7] || 0,
+      author: lvl[8] || "Unknown",
+      pads: (lvl[9] || []).map((p: any) => [p[0], p[1]])
     }));
 
     return { levels };
